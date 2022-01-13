@@ -1,8 +1,8 @@
 // Store our API endpoint inside queryUrl
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+var quakeUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 // Perform a GET request to the query URL
-d3.json(queryUrl).then(function (data) {
-    createFeatures(data.features);
+d3.json(quakeUrl).then(function (getData) {
+    createFeatures(getData.features);
 });
 
 function createFeatures(earthquakeData) {
@@ -11,7 +11,7 @@ function createFeatures(earthquakeData) {
     function onEachFeature(feature, layer) {
         layer.bindPopup("<h3>" + feature.properties.place +
             "</h3><hr><p>" + "Time: " + new Date(feature.properties.time) +
-            "</p><p>" + "Magnitude: " + (feature.properties.mag));
+            "</p><p>" + "Magnitude: " + feature.properties.mag);
     }
 
     function markerSize(magnitude) {
@@ -53,7 +53,7 @@ function createFeatures(earthquakeData) {
     });
     // Sending our earthquakes layer to the createMap function
     createMap(earthquakes);
-
+}
 
 function createMap(earthquakes) {
     // Define streetmap and darkmap layers
@@ -65,19 +65,13 @@ function createMap(earthquakes) {
         id: "mapbox/light-v10",
         accessToken: API_KEY
     });
-    var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-        attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-        maxZoom: 18,
-        id: "dark-v10",
-        accessToken: API_KEY
-    });
+
     // var earthquakeLayer = L.layerGroup(earthquakeMarker);
     var newLayer = new L.LayerGroup();
     // Define a baseMaps object to hold our base layers
     var baseMaps = {
         "Light Map": lightmap,
-        "Dark Map": darkmap
-    };
+    }
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
         Earthquakes: earthquakes
@@ -85,33 +79,25 @@ function createMap(earthquakes) {
     // Create our map, giving it the lightmap and earthquakes layers to display on load
     var myMap = L.map("map", {
         center: [
-            37.09, -95.71
-        ],
-        zoom: 5,
+            39.78, -119.71],
+        zoom: 5.48,
         layers: [lightmap, earthquakes, newLayer]
     });
-    // Create a layer control
-    // Pass in our baseMaps and overlayMaps
-    // Add the layer control to the map
-    L.control.layers(baseMaps, overlayMaps, {
-        collapsed: false
-    }).addTo(myMap);
 
     /*Legend specific*/
     var legend = L.control({ position: "bottomright" });
 
     legend.onAdd = function (myMap) {
         var div = L.DomUtil.create("div", "legend");
-        div.innerHTML += "<h4>Magnitude</h4>";
-        div.innerHTML += '<i style="background: #ff0000"></i><span>>5</span><br>';
-        div.innerHTML += '<i style="background: #ff9f00"></i><span>>4</span><br>';
-        div.innerHTML += '<i style="background: #ffff00"></i><span>>3</span><br>';
-        div.innerHTML += '<i style="background: #00ff00"></i><span>>2</span><br>';
-        div.innerHTML += '<i style="background: #00ffff"></i><span>>1</span><br>';
-        div.innerHTML += '<i style="background: #0000ff"></i><span>&#8804;1</span><br>'
-    }
+        div.innerHTML += "<h4>Depth (km)</h4>";
+        div.innerHTML += '<i style="background: #F06B6B"></i><span>-10 - 10</span><br>';
+        div.innerHTML += '<i style="background: #F0936B"></i><span>10 - 30</span><br>';
+        div.innerHTML += '<i style="background: #F3BA4E"></i><span>30 - 50</span><br>';
+        div.innerHTML += '<i style="background: #F3DB4C"></i><span>50 - 70</span><br>';
+        div.innerHTML += '<i style="background: #E1F34C"></i><span>70 - 90</span><br>';
+        div.innerHTML += '<i style="background: #B7F34D"></i><span>90+</span><br>'
         return div;
     };
 
     legend.addTo(myMap);
-}
+};
